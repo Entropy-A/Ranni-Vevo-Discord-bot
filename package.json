@@ -1,0 +1,41 @@
+{
+  "name": "ranni_vevo_discord_bot",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "main": "./dist/index.js",
+  "exports": "./dist/index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/underscore": "^1.11.15",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "start": "node .",
+    "dev": "nodemon --config nodemon.json src/index.ts",
+    "build": "tsc",
+    "deploy": "npm run build && node dist/scripts/deploy.js",
+    "deploy:dev": "cross-env NODE_ENV=development npm run deploy",
+    "remove": "cross-env NODE_ENV=development node dist/scripts/remove.js",
+    "testFile": "nodemon --config nodemon.json src/utils/TESTFILE.ts"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "class-transformer": "^0.5.1",
+    "cross-env": "^7.0.3",
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.3.1",
+    "node_characterai": "^1.2.1",
+    "reflect-metadata": "^0.2.1",
+    "underscore": "^1.13.6"
+  }
+}

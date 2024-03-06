@@ -1,0 +1,75 @@
+{
+    "error": {
+        "failedCommand": "An error occured while executing this command!"
+    },
+
+    "commands":{  
+        "categorys": {
+            "general": {
+                "name": "General",
+                "description": "> Verily, no additional particulars are provided."
+            },
+
+            "debug": {
+                "name": "Debug",
+                "description": "> Forsooth, meant to troubleshoot the automaton in case aught is awry or doth linger overmuch."
+            },
+
+            "music": {
+                "name": "Music",
+                "description": "> A broad array of behests thou may employ to behold mine exquisite musical prowess."
+            }
+        },
+
+        "ping": {
+            "commandDescription": "Let us witness how swiftly Ranni doth react to thy shot.",
+            "detailedDescription": {
+                "title": "Ping",
+                "description": "Showeth thee how long I needeth to devote myself unto thee.",
+                "syntax": "`/ping`",
+                "returns": "> The present reaction time of Ranni, in units of \"miliseconds\" (ms)."
+            },
+
+            "title": "*Pong* - Verily, a splendid strike!",
+            "message": {
+                "close": "By my troth! How swiftly thou didst strike... I had but a moment of [] to parry thy blow.",
+                "normal": "Hoho, didst thou behold that? It took me a whopping [] to react.\n > That was close. >-<",
+                "slow": "Goaugh... Oh WAIT! I just dozed off. Wow, [] is way too much. I'll endeavor to concentrate more!\n > *Mayhap I should procure a coffee or some such?*"
+            }
+        },
+
+        "help": {
+            "commandDescription": "Presenteth a list of commands anon.",
+            "detailedDescription": {
+                "title": "Help",
+                "description": "Showeth thee this page.",
+                "syntax": "`/help`",
+                "returns": "> A list of all the perks that Ranni doth bestow."
+            },
+
+            "menu": {
+                "title": "What dost thou inquire?",           
+                "description": "If thou art uncertain of what thou seek, a bar below shall display all commands enumerated."
+            },
+
+            "commandFieldNames":{
+                "syntax": "Syntax",
+                "returns": "Returns"
+            },
+            "commandTitle": "Here hast thou that which thou sought.",
+            "commandFooter": "**Category:** [[]]([]) | **Command:** **[]** / []"
+        },
+
+        "play": {
+            "commandDescription": "h",
+            "detailedDescription": {
+                "title": "h",
+                "description": "h",
+                "syntax": "h",
+                "returns": "h"
+            }
+        },
+
+        "test" : { "a" : ""}
+    }
+}

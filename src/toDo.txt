@@ -1,0 +1,14 @@
+Localized responses in commands
+Bot Website
+Link to website Help with commands
+command catgory Info in Json
+
+why is nodemon weird? cant use node-ts anymore ???
+
+Failed Command catching
+HelpCommand
+get language to string for automation
+
+learn about decorators (ex.: dynamic text, log)
+errorhandling with callbacks
+clickable Commands (Help, ...)
