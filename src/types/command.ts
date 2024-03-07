@@ -1,10 +1,10 @@
-import type { Awaitable, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { Awaitable, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import type MyClient from "./client.js";
 import type { LocaleText } from "../text/index.js";
 
 
 export type CommandLog = (...args: unknown[]) => void;
-export type CommandMeta = SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubCommand" | "addSubCommandGroup">
+export type CommandMeta = SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 
 export interface CommandProps {
     interaction: ChatInputCommandInteraction,

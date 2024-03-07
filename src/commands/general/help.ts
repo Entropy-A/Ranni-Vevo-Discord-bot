@@ -11,7 +11,7 @@ const meta = new SlashCommandBuilder()
     .setDescription(text.commands.help.commandDescription["en"])
     .setDescriptionLocalizations(_.omit(text.commands.help.commandDescription, "en"))
 
-const icon = "https://media.istockphoto.com/id/877759952/de/vektor/erste-hilfe-symbol-vektor.jpg?s=612x612&w=0&k=20&c=CGKagA4e5FAOgjv-un1LCJmQ3BQvtr_YsPNlH2HTUFY="
+const icon = "https://i.ibb.co/Pw20ZNN/Help-Icon-test.png"
 const detailedDescription = text.commands.help.detailedDescription
 
 export default new Command({
