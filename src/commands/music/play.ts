@@ -21,5 +21,7 @@ export default new Command({
 
         if(!interaction.member.voice.channel) return interaction.reply("not")
 
+        console.log("something changed")
+
     }
 })
