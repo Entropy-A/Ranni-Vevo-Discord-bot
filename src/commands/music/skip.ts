@@ -5,10 +5,9 @@ import _ from "underscore";
 import { Player } from "discord-player";
 
 const meta = new SlashCommandBuilder()
-    .setName("play")
+    .setName("skip")
     .setDescription(text.commands.play.commandDescription["en"])
     .setDescriptionLocalizations(_.omit(text.commands.play.commandDescription, "en"))
-    .addStringOption((option) => option.setName("title").setDescription("Title or url of the requested song.").setRequired(true))
 
 const icon = ":arrow_forward:"
 const detailedDescription = text.commands.play.detailedDescription
@@ -23,20 +22,14 @@ export default new Command({
         if (!(interaction.member instanceof GuildMember)) return interaction.reply("error1")
         const channel = interaction.member.voice.channel
         if (!channel) return interaction.reply("error2")
-        let title = interaction.options.getString("title")
-        if (!title) return interaction.reply("error3")
+        if (!interaction.guild?.id) return 
+        const queue = player.queues.get(interaction.guild?.id)
 
         await interaction.deferReply()
 
         try {
-            const { track } = await player.play(channel, title, {
-                nodeOptions: {
-                    // nodeOptions are the options for guild node (aka your queue in simple word)
-                    metadata: interaction // we can access this metadata object using queue.metadata later on
-                }
-            });
-    
-            return interaction.followUp(`**${track.title}** enqueued!`);
+            await queue?.node.skip()
+            return interaction.followUp(`Skipped to: ${queue?.tracks.toArray()[0]}`);
         } catch (error) {
             // let's return error if something failed
             log(error)

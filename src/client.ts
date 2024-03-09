@@ -5,6 +5,7 @@ import { registerCommands, registerEvents } from "./handlers/index.js";
 import events from "./events/index.js";
 import commands from "./commands/index.js";
 import { MyJSON } from "./utils/MyJSON.js";
+import { Player } from "discord-player";
 export const config = MyJSON.parse("src/config.json");
 
 
@@ -27,6 +28,14 @@ export const client = new Client({
 client.config = config
 client.events = new Collection();
 client.commands = new Collection();
+client.player = new Player(client, {
+    ytdlOptions: {
+        quality: "highestaudio",
+        highWaterMark: 1 << 25
+    }
+})
+
+await client.player.extractors.loadDefault();
 
 client.login(Keys.clientToken)
     .catch((err => {
