@@ -1,28 +1,19 @@
 import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
-import MyClient from "./types/index.js";
-import Keys from "./keys/keys.js";
-import { registerCommands, registerEvents } from "./handlers/index.js";
-import events from "./events/index.js";
-import commands from "./commands/index.js";
-import { MyJSON } from "./utils/MyJSON.js";
+import MyClient from "../types/index.js";
+import Keys from "../keys/keys.js";
+import { registerCommands, registerEvents } from "../handlers/index.js";
+import events from "../events/index.js";
+import commands from "../commands/index.js";
+import { MyJSON } from "../utils/MyJSON.js";
 import { Player } from "discord-player";
+import { HooksRegistry, Symbols } from "../hooks/registry.js";
+import { ClientPartials, ClientIntents } from "../utils/constants.js";
 export const config = MyJSON.parse("src/config.json");
 
 
 export const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildVoiceStates
-    ],
-    partials: [
-        Partials.User,
-        Partials.Message,
-        Partials.Channel,
-        Partials.ThreadMember,
-    ]
+    intents: ClientIntents,
+    partials: ClientPartials
 }) as MyClient;
 
 client.config = config
@@ -34,6 +25,7 @@ client.player = new Player(client, {
         highWaterMark: 1 << 25
     }
 })
+HooksRegistry.set(Symbols.kClient, client);
 
 await client.player.extractors.loadDefault();
 

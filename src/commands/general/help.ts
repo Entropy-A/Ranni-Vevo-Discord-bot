@@ -1,8 +1,10 @@
 import {  ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, } from "discord.js";
 import { Command } from "../../types/command.js";
 import _ from "underscore";
-import { Page, MyColors, PageButton, PageMenu, CategoryPages, PageSelectMenu, defaultMessages, commandErrorMessage } from "../../types/pages.js";
+import { Page, PageButton, PageMenu, CategoryPages, PageSelectMenu } from "../../types/pages.js";
+import { defaultMessages } from "../../utils/messages/default.js";
 import { Text, text } from "../../text/index.js";
+import { RanniColors } from "../../utils/constants.js";
 import commands from "../index.js";
 
 
@@ -62,7 +64,7 @@ export default new Command({
                                 {name: "Join me guild!", value: "[Ranni's Tower](https://www.youtube.com/watch?v=d43lJsK7Kvo)", inline: true})
             // menuEmbed.addFields({name: "\u200B", value: "Developed by **SR FLORENT**"})
             const menu = new Page({id: "menu"})
-                .setEmbeds([helpBanner, menuEmbed], MyColors.help)
+                .setEmbeds([helpBanner, menuEmbed], RanniColors.help)
 
             // -----------------------------------------------------------------Detailed Help Pages--------------------------------------------------------------
 
@@ -95,7 +97,7 @@ export default new Command({
                                 .addFields({name: Text.get(text.commands.help.commandFieldNames.syntax, interaction.locale), value: syntax, inline: true}, {name: Text.get(text.commands.help.commandFieldNames.returns, interaction.locale), value: returns, inline: true})
                                 .setThumbnail("https://i.ibb.co/cgKVZ6N/ranni1.png")
                             ]
-                    }).setColor(MyColors.help)
+                    }).setColor(RanniColors.help)
                     commandPages[categoryId].push(commandPage)
                 }
             }
@@ -211,11 +213,11 @@ export default new Command({
             help.addCategorys(commandPages)
             help.addSelectMenus([selectMenu])
             help.addButtons([/* backButton,  */ menuButton /*, nextButton */])
-            help.reply(menu, client, interaction, undefined, true)
+            help.reply(menu, interaction, undefined, true)
         
         } catch (error) {
             log(error)
-            commandErrorMessage(client, interaction, defaultMessages.commandError)
+            defaultMessages.commandError(interaction)
         }
     } 
 })

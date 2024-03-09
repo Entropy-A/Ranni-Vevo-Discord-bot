@@ -1,1 +1,1 @@
-import("./client.js");
+import("./bootstrap/client.js");

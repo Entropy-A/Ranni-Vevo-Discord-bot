@@ -1,7 +1,0 @@
-Bot Website
-Link to website Help with commands
-Add modal submit for Bugreport.
-Add context menus like: Let ranni rephrase.
-
-learn about decorators (ex.: dynamic text, log)
-??? Why is nodemon weird? cant use node-ts anymore? ???

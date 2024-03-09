@@ -4,3 +4,5 @@ dist
 .dev.env
 .env
 /src/utils/unused
+toDo.txt
+remember.txt

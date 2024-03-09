@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, CommandInteraction} from "discord.js";
 import { EventLog, Events, Event } from "../../types/event.js";
 import MyClient from "../../types/client.js";
 import { Command } from "../../types/command.js";
-import { commandErrorMessage, defaultMessages } from "../../types/pages.js";
+import { defaultMessages } from "../../utils/messages/default.js";
 
 export default new Event({
   key: Events.InteractionCreate,
@@ -39,6 +39,6 @@ function executeCommand(interaction: ChatInputCommandInteraction, client: MyClie
 
     if (!interaction.isChatInputCommand()) return
     log(`[Command Error] at [${interaction.commandName}] `,error);
-    commandErrorMessage(client, interaction, defaultMessages.commandError)
+    defaultMessages.commandError(interaction)
   }
 }

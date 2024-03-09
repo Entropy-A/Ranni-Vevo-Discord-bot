@@ -2,7 +2,9 @@ import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { Command} from "../../types/command.js";
 import _ from "underscore";
 import { Text, text} from "../../text/index.js";
-import { MyColors, Page, commandErrorMessage, defaultMessages } from "../../types/pages.js";
+import { Page } from "../../types/pages.js";
+import { defaultMessages } from "../../utils/messages/default.js";
+import { RanniColors } from "../../utils/constants.js";
 
 
 const meta = new SlashCommandBuilder()
@@ -45,14 +47,14 @@ export default new Command({
                         .setDescription(message)
                 ]
                 })
-            reply.setColor(MyColors.debug)
+            reply.setColor(RanniColors.debug)
 
-            return reply.followUp(client, interaction, 60000, true);
+            return reply.followUp(interaction, 60000, true);
 
         } catch (error) {
 
             log(error)
-            commandErrorMessage(client, interaction, defaultMessages.commandError)
+            defaultMessages.commandError(interaction)
         }
     }
 })

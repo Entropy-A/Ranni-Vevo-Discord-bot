@@ -3,6 +3,8 @@ import { ActionRowBuilder } from "discord.js";
 import MyClient from "../types/client.js";
 import { MyUtils } from "../utils/MyUtils.js";
 import { Text, text } from "../text/index.js";
+import { RanniColors, RanniColorType } from "../utils/constants.js";
+import { useClient } from "../hooks/useClient.js";
 
 // --------------------------------TO DO----------------------------
 // documentation
@@ -10,17 +12,6 @@ import { Text, text } from "../text/index.js";
 // -------------------------------Errors----------------------------
 //      [Page Error] [ID]
 //      [PageMenu Error]
-
-// Colors available for Embeds
-export const MyColors = {
-    error:  0xff0000, 
-    debug:  0xd4ac0d,
-    help:   0x384f7d,
-    music:  0xf6efdd,
-    nothing: 0,
-} as const
-
-export type ColorType = typeof MyColors[keyof typeof MyColors]
 
 // ---------------------------------PAGE---------------------------------
 
@@ -160,14 +151,16 @@ export interface PageData {
 
 export class Page {  
 
-    constructor(public data: PageData) {}
+    constructor(public data: PageData) {
+        this.data.client = useClient()
+    }
 
     setId(id: string): this {
         this.data.id = id;
         return this
     }
 
-    setColor(color: ColorType): this {
+    setColor(color: RanniColorType): this {
         if (this.data.embeds) {
 
             this.data.embeds.forEach( embed => {
@@ -178,7 +171,7 @@ export class Page {
         throw Error(`[Page Error] [${this.data.id}] The pageEmbed must be defined before applying the color.`)
     }
 
-    setEmbeds(embeds: Omit<EmbedBuilder, "setColor">[], color?: ColorType): this {
+    setEmbeds(embeds: Omit<EmbedBuilder, "setColor">[], color?: RanniColorType): this {
         this.data.embeds = embeds
         if (color) this.setColor(color)
         return this
@@ -205,10 +198,10 @@ export class Page {
     }
 
     private addComponents(): ActionRowBuilder<ButtonBuilder | SelectMenuBuilders>[] | undefined {
-        const _client = this.data.client
+        const client = this.data.client
         const interaction = this.data.interaction
 
-        if(!_client || !interaction) throw new Error(`[Page Error] [${this.data.id}] Could not add Components since [interaction] or [client] were not defined.`)
+        if(!client || !interaction) throw new Error(`[Page Error] [${this.data.id}] Could not add Components since [interaction] or [client] were not defined.`)
 
 
         let buttons = new ActionRowBuilder<ButtonBuilder>()
@@ -216,7 +209,7 @@ export class Page {
         if (this.data.buttons) {
             for (const button of this.data.buttons) {
                 if(!button.data.VisibilityCallback) throw new Error(`[Page Error] [${this.data.id}] Button with [ID:${button.data.id}] has no VisibilityCallback.`)
-                if (button.data.VisibilityCallback({ interaction, client: _client})) {
+                if (button.data.VisibilityCallback({ interaction, client})) {
                     buttons.addComponents((button.data.buttonBuilder as ButtonBuilder))
                 }
             }
@@ -227,7 +220,7 @@ export class Page {
         if (this.data.selectMenus) {
             for (const selectMenu of this.data.selectMenus) {
                 if(!selectMenu.data.VisibilityCallback) throw new Error(`[Page Error] [${this.data.id}] SelectMenu with [ID:${selectMenu.data.id}] has no VisibilityCallback`)
-                if (selectMenu.data.VisibilityCallback({ interaction, client: _client})) {
+                if (selectMenu.data.VisibilityCallback({ interaction, client})) {
                     selectMenus.addComponents((selectMenu.data.selectMenuBuilder as SelectMenuBuilders))
                 }
             }
@@ -240,13 +233,13 @@ export class Page {
         return [selectMenus, buttons]
     }
 
-    private async send(client: MyClient, interaction: ChatInputCommandInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
+    private async send(interaction: ChatInputCommandInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
 
-        this.data.client = client
         this.data.interaction = interaction
 
         this.catchErrors()
 
+        const client = this.data.client!
         const userId = this.data.interaction.user.id
         const embeds = this.data.embeds ?? undefined
         const components = this.addComponents()
@@ -317,12 +310,12 @@ export class Page {
         return this
     }
 
-    reply(client: MyClient, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
-        return this.send(client, interaction, "reply", timeout, ephemeral)
+    reply(interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+        return this.send(interaction, "reply", timeout, ephemeral)
     }
 
-    followUp(client: MyClient, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
-        return this.send(client, interaction, "followUp", timeout, ephemeral)
+    followUp(interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+        return this.send(interaction, "followUp", timeout, ephemeral)
     }
 
     async update(newPage?: InteractionUpdateOptions) {
@@ -590,7 +583,7 @@ export class PageMenu {
     }
 
     // Sends specified page as "anchor". The anchor is the message, that registers all the component interactions.
-    private async send(page: string | Page, client: MyClient, interaction: ChatInputCommandInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
+    private async send(page: string | Page, interaction: ChatInputCommandInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
         let currentPage = this.data.currentPage
         let originPage: PageTripplet | undefined, newPage: Page
 
@@ -618,15 +611,15 @@ export class PageMenu {
         let page_
         switch (methode) { 
             case "followUp": 
-                page_ = await newPage.followUp(client, interaction, timeout, ephemeral)
+                page_ = await newPage.followUp(interaction, timeout, ephemeral)
                 break;
 
             case "reply":   
-                page_ = await newPage.reply(client, interaction, timeout, ephemeral) 
+                page_ = await newPage.reply(interaction, timeout, ephemeral) 
                 break;
 
             default : 
-                page_ = await newPage.reply(client, interaction, timeout, ephemeral) 
+                page_ = await newPage.reply(interaction, timeout, ephemeral) 
                 break;
         }
 
@@ -636,12 +629,12 @@ export class PageMenu {
         this.data.currentPage = currentPage
     }
 
-    reply(page: string | Page, client: MyClient, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
-        return this.send(page, client, interaction, "reply", timeout, ephemeral)
+    reply(page: string | Page, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+        return this.send(page, interaction, "reply", timeout, ephemeral)
     }
 
-    followUp(page: string | Page, client: MyClient, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
-        return this.send(page, client, interaction, "followUp", timeout, ephemeral)
+    followUp(page: string | Page, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+        return this.send(page, interaction, "followUp", timeout, ephemeral)
     }
 
     // Updates the anchor
@@ -711,33 +704,4 @@ export class PageMenu {
 
         // Future BackCategory Button to access Pages from Different Categorys
     }
-}
-
-// -----------------------------Default Pages-----------------------------
-// Future Send Ticket for Error to Website / Report Error
-export const defaultMessages = {
-    commandError(interaction: ChatInputCommandInteraction):Page {
-        return new Page({
-            id: "commandError",
-            embeds: [
-                new EmbedBuilder()
-                    .setAuthor({
-                        name: Text.get(text.error.failedCommand, interaction.locale), //
-                        iconURL: "https://thumbs.dreamstime.com/z/blue-icon-symbol-sad-face-4651546.jpg",
-                        url: undefined}) // Future link to my Website/Errors
-                    .setImage("https://support.content.office.net/de-de/media/4c10ecfd-3008-4b00-9f98-d41b6f899c2d.png")
-                ]
-            } 
-        ).setColor(MyColors.error)
-    }
-} as const
-
-export type DefaultMessageType = typeof defaultMessages[keyof typeof defaultMessages]
-
-export function commandErrorMessage(client: MyClient, interaction: ChatInputCommandInteraction, message: DefaultMessageType) {
-    if (interaction.deferred || interaction.replied) {
-      return message(interaction).followUp(client, interaction, undefined, true)
-    }
-
-    else return message(interaction).reply(client, interaction, undefined, true)
 }
