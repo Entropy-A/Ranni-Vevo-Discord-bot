@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, CommandInteraction} from "discord.js";
 import { EventLog, Events, Event } from "../../types/event.js";
 import MyClient from "../../types/client.js";
 import { Command } from "../../types/command.js";
-import { defaultMessages } from "../../utils/messages/default.js";
+import { defaultMessages } from "../../text/pages/default.js";
 
 export default new Event({
   key: Events.InteractionCreate,

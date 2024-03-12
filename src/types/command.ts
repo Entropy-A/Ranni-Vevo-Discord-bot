@@ -23,6 +23,7 @@ export type CommandCallback = (
 export interface CommandData {
     id?: string,
     icon: string,
+    color: number,
     detailedDescription: {
         title: LocaleText,
         description: LocaleText,

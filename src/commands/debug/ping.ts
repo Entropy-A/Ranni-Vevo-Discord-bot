@@ -3,20 +3,24 @@ import { Command} from "../../types/command.js";
 import _ from "underscore";
 import { Text, text} from "../../text/index.js";
 import { Page } from "../../types/pages.js";
-import { defaultMessages } from "../../utils/messages/default.js";
+import { defaultMessages } from "../../text/pages/default.js";
 import { RanniColors } from "../../utils/constants.js";
+import { EmbedGenerator } from "../../utils/embedGenerator.js";
+import createPingPage from "../../text/pages/ping.js";
 
 
 const meta = new SlashCommandBuilder()
     .setName("ping")
-    .setDescription(text.commands.ping.commandDescription["en"])
-    .setDescriptionLocalizations(_.omit(text.commands.ping.commandDescription, "en"))
+    .setDescription(text.commands.ping.commandDescription["en-US"])
+    .setDescriptionLocalizations(_.omit(text.commands.ping.commandDescription, "en-US"))
 
 const icon = "https://cdn.pixabay.com/photo/2022/05/23/16/05/table-tennis-7216579_1280.png"
+const color = RanniColors.debug
 const detailedDescription = text.commands.ping.detailedDescription
 
 export default new Command({
     icon,
+    color,
     detailedDescription,
     meta,
     callback: async({ client, interaction , log}) => {
@@ -25,31 +29,10 @@ export default new Command({
 
             interaction.deferReply({ephemeral: true});
             const timeStamp = await interaction.fetchReply();
-            const ping_ = timeStamp.createdTimestamp - interaction.createdTimestamp
-            const ping = ` \`${ping_}ms\` `;
-            const title = Text.get(text.commands.ping.title, interaction.locale);
-            let message: string
-            if (ping_ < 250) {
-                message = Text.get(text.commands.ping.message.close, interaction.locale);
-            } else if (ping_ < 500) {
-                message = Text.get(text.commands.ping.message.normal, interaction.locale);
-            } else {
-                message = Text.get(text.commands.ping.message.slow, interaction.locale);
-            }
-
-            message = Text.insertInMessage([ping], message)
-
-            const reply = new Page({
-                id: "pingCommand", 
-                embeds: [
-                    new EmbedBuilder()
-                        .setAuthor({name: title, iconURL: icon})
-                        .setDescription(message)
-                ]
-                })
-            reply.setColor(RanniColors.debug)
-
-            return reply.followUp(interaction, 60000, true);
+            const locale = interaction.locale
+            const pingValue = timeStamp.createdTimestamp - interaction.createdTimestamp
+            
+            createPingPage({locale, icon, pingValue}).followUp(interaction, 60000, true);
 
         } catch (error) {
 

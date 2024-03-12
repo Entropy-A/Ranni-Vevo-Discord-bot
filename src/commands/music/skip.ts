@@ -6,14 +6,16 @@ import { Player } from "discord-player";
 
 const meta = new SlashCommandBuilder()
     .setName("skip")
-    .setDescription(text.commands.play.commandDescription["en"])
-    .setDescriptionLocalizations(_.omit(text.commands.play.commandDescription, "en"))
+    .setDescription(text.commands.play.commandDescription["en-US"])
+    .setDescriptionLocalizations(_.omit(text.commands.play.commandDescription, "en-US"))
 
 const icon = ":arrow_forward:"
+const color = 0
 const detailedDescription = text.commands.play.detailedDescription
 
 export default new Command({
     icon,
+    color,
     detailedDescription,
     meta,
     callback: async ({client, interaction, log}) => {

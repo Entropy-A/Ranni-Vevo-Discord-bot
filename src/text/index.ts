@@ -2,6 +2,7 @@ import fs from "fs";
 import { MyJSON } from "../utils/MyJSON.js";
 import { plainToInstance } from "class-transformer";
 import { MyUtils } from "../utils/MyUtils.js";
+import { LocaleString } from "discord.js";
 
 // -----------To Do----------------
 // Documentation / Types
@@ -26,7 +27,7 @@ import { MyUtils } from "../utils/MyUtils.js";
             "returns": ""
         } */
 
-export type LocaleText = Record<string, string> 
+export type LocaleText = Record<LocaleString, string>
 export type LocaleTextFiles = {
     error: {
         failedCommand: LocaleText
@@ -145,11 +146,11 @@ export class Text {
      * @param property Property of text.
      * @param locale Location string.
      */
-    static get(property: LocaleText, locale: string | undefined): string {
+    static get(property: LocaleText, locale: LocaleString | undefined): string {
         if (!property) throw new Error(`[Text] Accessed property does not exist in language file(s).`)
-        if (!locale) return property["en"]
+        if (!locale) return property["en-US"]
         if (property[locale]) return property[locale]
-        else if (property["en"]) return property["en"]
+        else if (property["en-US"]) return property["en-US"]
         else throw new Error(`[Text] property was not defined in language file(s).`)
     }
 }

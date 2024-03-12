@@ -2,8 +2,7 @@ import { EmbedBuilder, ButtonBuilder, StringSelectMenuBuilder, RoleSelectMenuBui
 import { ActionRowBuilder } from "discord.js";
 import MyClient from "../types/client.js";
 import { MyUtils } from "../utils/MyUtils.js";
-import { Text, text } from "../text/index.js";
-import { RanniColors, RanniColorType } from "../utils/constants.js";
+import { RanniColorType } from "../utils/constants.js";
 import { useClient } from "../hooks/useClient.js";
 
 // --------------------------------TO DO----------------------------
@@ -24,8 +23,6 @@ export type PageInteractions = ChatInputCommandInteraction | ComponentInteractio
  * @param {ComponentInteraction} interaction Interaction that triggered callback.
  * @param {MyClient} client Bot client.
  */
-
-
 export interface ButtonCallbackProps {
     interaction: ButtonInteraction
     client: MyClient
@@ -85,10 +82,7 @@ export interface PageButtonData {
     callback?: ButtonCallback
 }
 
-/**
- * Represent a button including it's functionality.
- * @param {PageButtonData} data
- */
+
 export class PageButton {
 
     constructor(public data: PageButtonData) {

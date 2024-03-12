@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js"
-import { EmbedGenerator } from "../embedGenerator.js"
+import { EmbedGenerator } from "../../utils/embedGenerator.js"
 import { Page } from "../../types/pages.js"
-import { Text, text } from "../../text/index.js"
+import { Text, text } from "../index.js"
 
 export const defaultMessages = {
     // Future Send Ticket for Error to Website / Report Error
@@ -25,5 +25,4 @@ export const defaultMessages = {
     },
 
 } as const 
-
 export type DefaultMessageType = typeof defaultMessages[keyof typeof defaultMessages]

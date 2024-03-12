@@ -19,7 +19,7 @@ export const client = new Client({
 client.config = config
 client.events = new Collection();
 client.commands = new Collection();
-client.player = new Player(client, {
+client.player = new Player(client, { ///////////
     ytdlOptions: {
         quality: "highestaudio",
         highWaterMark: 1 << 25
@@ -27,7 +27,7 @@ client.player = new Player(client, {
 })
 HooksRegistry.set(Symbols.kClient, client);
 
-await client.player.extractors.loadDefault();
+await client.player.extractors.loadDefault(); ////////
 
 client.login(Keys.clientToken)
     .catch((err => {
