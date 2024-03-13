@@ -68,8 +68,6 @@
                 "syntax": "h",
                 "returns": "h"
             }
-        },
-
-        "test" : { "a" : ""}
+        }
     }
 }

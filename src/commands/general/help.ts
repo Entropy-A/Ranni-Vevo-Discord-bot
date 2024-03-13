@@ -1,18 +1,17 @@
-import {  ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, } from "discord.js";
+import { ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, } from "discord.js";
 import { Command } from "../../types/command.js";
 import _ from "underscore";
-import { Page, PageButton, PageMenu, CategoryPages, PageSelectMenu } from "../../types/pages.js";
+import { PageButton, PageMenu,PageSelectMenu } from "../../types/pages.js";
 import { defaultMessages } from "../../text/pages/default.js";
-import { Text, text } from "../../text/index.js";
+import { text } from "../../text/index.js";
 import { RanniColors } from "../../utils/constants.js";
-import commands from "../index.js";
 import { createCommandHelpPages, createHelpMenuPage } from "../../text/pages/help.js";
 
 
 const meta = new SlashCommandBuilder()
     .setName("help")
-    .setDescription(text.commands.help.commandDescription["en-US"])
-    .setDescriptionLocalizations(_.omit(text.commands.help.commandDescription, "en-US"))
+    .setDescription(text.commands.help.commandDescription.get("en-US"))
+    .setDescriptionLocalizations(_.omit(text.commands.help.commandDescription.text, "en-US"))
 
 const icon = "https://i.ibb.co/Pw20ZNN/Help-Icon-test.png"
 const color = RanniColors.help
@@ -124,7 +123,13 @@ export default new Command({
 
 
                     const name = "\u200B"
-                    const value = Text.insertInMessage([(Text.get((text.commands.categorys as any)[category[1]].name, interaction.locale) ?? category[1]), categoryLink, index.toString(), category[0].length.toString()], Text.get(text.commands.help.commandFooter, interaction.locale))
+                    const value = text.commands.help.commandFooter.insertInMessage([
+                        (text.commands.categorys as any)[category[1]].name ?? category[1], 
+                        categoryLink, 
+                        index.toString(), 
+                        category[0].length.toString()],
+                    interaction.locale)
+                    //Text.insertInMessage([(Text.get((text.commands.categorys as any)[category[1]].name, interaction.locale) ?? category[1]), categoryLink, index.toString(), category[0].length.toString()], Text.get(text.commands.help.commandFooter, interaction.locale))
                     
                     // That the fields don't get added multiple times if called repeatetly
                     const fields = page.data.embeds?.[0].data.fields

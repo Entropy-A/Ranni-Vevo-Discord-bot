@@ -11,8 +11,8 @@ import createPingPage from "../../text/pages/ping.js";
 
 const meta = new SlashCommandBuilder()
     .setName("ping")
-    .setDescription(text.commands.ping.commandDescription["en-US"])
-    .setDescriptionLocalizations(_.omit(text.commands.ping.commandDescription, "en-US"))
+    .setDescription(text.commands.ping.commandDescription.get("en-US"))
+    .setDescriptionLocalizations(_.omit(text.commands.ping.commandDescription.text, "en-US"))
 
 const icon = "https://cdn.pixabay.com/photo/2022/05/23/16/05/table-tennis-7216579_1280.png"
 const color = RanniColors.debug

@@ -9,7 +9,7 @@ export const defaultMessages = {
         const errorPage = new Page({id: "commandError", embeds: [
             EmbedGenerator.Error({
                 author: {
-                    name: Text.get(text.error.failedCommand, interaction.locale),
+                    name: text.error.failedCommand.get(interaction.locale),
                     iconURL: "https://thumbs.dreamstime.com/z/blue-icon-symbol-sad-face-4651546.jpg",
                     url: undefined
                 },

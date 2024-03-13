@@ -6,8 +6,8 @@ import { Player } from "discord-player";
 
 const meta = new SlashCommandBuilder()
     .setName("play")
-    .setDescription(text.commands.play.commandDescription["en-US"])
-    .setDescriptionLocalizations(_.omit(text.commands.play.commandDescription, "en-US"))
+    .setDescription(text.commands.play.commandDescription.get("en-US"))
+    .setDescriptionLocalizations(_.omit(text.commands.play.commandDescription.text, "en-US"))
     .addStringOption((option) => option.setName("title").setDescription("Title or url of the requested song.").setRequired(true))
 
 const icon = ":arrow_forward:"

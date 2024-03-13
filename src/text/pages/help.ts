@@ -3,7 +3,7 @@ import { EmbedGenerator } from "../../utils/embedGenerator.js";
 import { Page } from "../../types/pages.js";
 import commands from "../../commands/index.js";
 import { LocaleString } from "discord.js";
-import { Text, text } from "../index.js";
+import { text } from "../index.js";
 import { CategoryPages } from "../../types/pages.js";
 
 // --------------------------------------------------------Help Menu Page--------------------------------------------------------------
@@ -19,8 +19,8 @@ export function createHelpMenuPage(data: HelpMenuData): Page {
     const helpBanner = EmbedGenerator.create().setImage("https://i.ibb.co/jJ6VXnV/ranni-the-witch-elden-ring1920v3.png") /////////////////////////////// Change Future
     
     // Menu page       
-    const menuEmbed = EmbedGenerator.Command(RanniColors.help, data.icon, Text.get(text.commands.help.menu.title, data.locale))
-        .setDescription(Text.get(text.commands.help.menu.description, data.locale))
+    const menuEmbed = EmbedGenerator.Command(RanniColors.help, data.icon, text.commands.help.menu.title.get(data.locale))
+        .setDescription(text.commands.help.menu.description.get(data.locale))
         .setImage("https://i.ibb.co/Kj1VMCY/7582555-100000001-developed14.png") ////////////// To Fix size Change Future
 
     // Menu fields for every category
@@ -43,7 +43,7 @@ export function createHelpMenuPage(data: HelpMenuData): Page {
                 }
                 commands.push(string)
             }
-            menuEmbed.addFields({name: `${category.data.emoji ?? "" } ${Text.get(category.data.name, data.locale)}`, value: commands.join(" ") + "\n" + Text.get(category.data.description, data.locale), inline: false})
+            menuEmbed.addFields({name: `${category.data.emoji ?? "" } ${category.data.name.get(data.locale)}`, value: commands.join(" ") + "\n" + category.data.description.get(data.locale), inline: false})
         }
     }
 
@@ -73,7 +73,7 @@ export function createCommandHelpPages(data: CommandHelpData): CategoryPages {
     let commandPages: CategoryPages = {}
     for (const category of commands) {
 
-        const categoryId = category.data.name["en-US"].toLowerCase()
+        const categoryId = category.data.name.get("en-US").toLowerCase()
         commandPages[categoryId] = []
 
         for (const command of category.data.commands) {
@@ -83,20 +83,20 @@ export function createCommandHelpPages(data: CommandHelpData): CategoryPages {
                 break
             }
 
-            const title = Text.get(detailedDescription.title, data.locale)
-            const description = Text.get(detailedDescription.description, data.locale)
-            const syntax = Text.get(detailedDescription.syntax, data.locale)
-            const returns = Text.get(detailedDescription.returns, data.locale)
+            const title = detailedDescription.title.get(data.locale)
+            const description = detailedDescription.description.get(data.locale)
+            const syntax = detailedDescription.syntax.get(data.locale)
+            const returns = detailedDescription.returns.get(data.locale)
 
             const commandPage = new Page({
                 id: command.data.meta.name,
-                embeds: [EmbedGenerator.Command(RanniColors.help, data.icon, Text.get(text.commands.help.commandTitle, data.locale), {
+                embeds: [EmbedGenerator.Command(RanniColors.help, data.icon, text.commands.help.commandTitle.get(data.locale), {
                     thumbnail: {url: "https://i.ibb.co/cgKVZ6N/ranni1.png"},
                     title,
                     description: ":wave: " + description,
                     fields: [
-                        {name: Text.get(text.commands.help.commandFieldNames.syntax, data.locale), value: syntax, inline: true},
-                        {name: Text.get(text.commands.help.commandFieldNames.returns, data.locale), value: returns, inline: true}
+                        {name: text.commands.help.commandFieldNames.syntax.get(data.locale), value: syntax, inline: true},
+                        {name: text.commands.help.commandFieldNames.returns.get(data.locale), value: returns, inline: true}
                     ]
                 })]
             })
