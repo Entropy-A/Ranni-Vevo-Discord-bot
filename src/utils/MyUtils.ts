@@ -1,7 +1,10 @@
 // -----------------------General utils-------------------------
-
 export namespace MyUtils {
 
+    /**
+     * Checks if object is empty.
+     * @returns boolean
+     */
     export function objectEmpty(object: Object) {
         if (Object.keys(object).length === 0) return true
         return false
@@ -31,10 +34,13 @@ export namespace MyUtils {
 }
 
 // -----------------------Array Extentions-------------------------
-
 export namespace ArrayExtensions {
 
-    //chooses a random elemnt from an Array
+    /**
+     * Chooses a random element from an array.
+     * @param {unknown} array 
+     * @returns Unknown element of array.
+     */
     export function sample<T>(array: T[]): T | undefined {
         if (array.length === 0) return undefined
 

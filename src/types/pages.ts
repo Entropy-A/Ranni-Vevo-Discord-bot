@@ -1,4 +1,6 @@
-import { EmbedBuilder, ButtonBuilder, StringSelectMenuBuilder, RoleSelectMenuBuilder, Awaitable, Interaction, ChatInputCommandInteraction, ComponentType, ButtonInteraction, StringSelectMenuInteraction, UserSelectMenuBuilder, ChannelSelectMenuBuilder, RoleSelectMenuInteraction, UserSelectMenuInteraction, ChannelSelectMenuInteraction, InteractionUpdateOptions, Message, InteractionResponse, MessageFlags } from "discord.js";
+import { EmbedBuilder, ButtonBuilder, StringSelectMenuBuilder, RoleSelectMenuBuilder, Awaitable, Interaction, ChatInputCommandInteraction,
+ComponentType, ButtonInteraction, StringSelectMenuInteraction, UserSelectMenuBuilder, ChannelSelectMenuBuilder, RoleSelectMenuInteraction,
+UserSelectMenuInteraction, ChannelSelectMenuInteraction, InteractionUpdateOptions, Message, InteractionResponse, MessageFlags } from "discord.js";
 import { ActionRowBuilder } from "discord.js";
 import MyClient from "../types/client.js";
 import { MyUtils } from "../utils/MyUtils.js";
@@ -13,21 +15,25 @@ import { useClient } from "../hooks/useClient.js";
 //      [PageMenu Error]
 
 // ---------------------------------PAGE---------------------------------
-
 export type SelectMenuBuilders = StringSelectMenuBuilder | RoleSelectMenuBuilder | UserSelectMenuBuilder | ChannelSelectMenuBuilder 
 export type ComponentInteraction = ButtonInteraction | StringSelectMenuInteraction | RoleSelectMenuInteraction | UserSelectMenuInteraction | ChannelSelectMenuInteraction
 export type PageInteractions = ChatInputCommandInteraction | ComponentInteraction
 
 /**
  * Default property of callbacks used in Pages.
- * @param {ComponentInteraction} interaction Interaction that triggered callback.
- * @param {MyClient} client Bot client.
+ * @param {ButtonInteraction} interaction ButtonInteraction that triggered callback.
+ * @param {MyClient} client 
  */
 export interface ButtonCallbackProps {
     interaction: ButtonInteraction
     client: MyClient
 }
 
+/**
+ * Default property of callbacks used in Pages.
+ * @param {StringSelectMenuInteraction} interaction StringSelectMenuInteraction that triggered callback.
+ * @param {MyClient} client 
+ */
 export interface SelectMenuCallbackProps {
     interaction: StringSelectMenuInteraction
     client: MyClient
@@ -35,8 +41,8 @@ export interface SelectMenuCallbackProps {
 
 /**
  * Default propertys of visibilityCallbacks.
- * @param {ComponentInteraction} interaction Interaction that triggered callback.
- * @param {MyClient} client Bot client.
+ * @param {ComponentInteraction} interaction PageInteraction that triggered callback.
+ * @param {MyClient} client
  */
 export interface VisClbkProps {
     interaction: PageInteractions
@@ -68,13 +74,6 @@ export type VisibilityCallback = (
     ...args: unknown[]
 ) => boolean
 
-// Button 
-/**
- * @param {string} id
- * @param {Omit<ButtonBuilder, "setCustomId">} buttonBuilder
- * @param {VisibilityCallback} VisibilityCallback
- * @param {ComponentCallback} callback
- */
 export interface PageButtonData {
     id: string,
     buttonBuilder: Omit<ButtonBuilder, "setCustomId">,
@@ -82,7 +81,13 @@ export interface PageButtonData {
     callback?: ButtonCallback
 }
 
-
+/**
+ * Creates button used for pages.
+ * @param {string} id
+ * @param {Omit<ButtonBuilder, "setCustomId">} buttonBuilder
+ * @param {VisibilityCallback} VisibilityCallback
+ * @param {ButtonCallback} callback
+ */
 export class PageButton {
 
     constructor(public data: PageButtonData) {
@@ -103,7 +108,6 @@ export class PageButton {
     }
 }
 
-// Selectmenu 
 export interface PageSelectMenuData {
     id: string,
     selectMenuBuilder: Omit<SelectMenuBuilders, "setCustomId">,
@@ -111,6 +115,13 @@ export interface PageSelectMenuData {
     callback?: SelectMenuCallback
 }
 
+/**
+ * Creates selectMenu used for pages.
+ * @param {string} id
+ * @param {Omit<SelectMenuBuilders, "setCustomId">} buttonBuilder
+ * @param {VisibilityCallback} VisibilityCallback
+ * @param {SelectMenuCallback} callback
+ */
 export class PageSelectMenu {
 
     constructor(public data: PageSelectMenuData) {
@@ -131,7 +142,6 @@ export class PageSelectMenu {
     }
 }
 
-// PageData
 export interface PageData {
     client?: MyClient
     interaction?: PageInteractions
@@ -145,7 +155,7 @@ export interface PageData {
 
 export class Page {  
 
-    constructor(public data: PageData) {
+    constructor(public data: PageData = {}) {
         this.data.client = useClient()
     }
 

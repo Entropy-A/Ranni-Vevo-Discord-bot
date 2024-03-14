@@ -6,6 +6,11 @@ import type { LocaleText } from "../text/index.js";
 export type CommandLog = (...args: unknown[]) => void;
 export type CommandMeta = SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup">;
 
+/**
+ * @param {ChatInputCommandInteraction} interaction
+ * @param {MyClient} client
+ * @param {CommandLog} log
+ */
 export interface CommandProps {
     interaction: ChatInputCommandInteraction,
     client: MyClient,
@@ -17,8 +22,6 @@ export type CommandCallback = (
     props: CommandProps,
     ...args: unknown[]
 ) => Awaitable<unknown>;
-
-// -------------------------Command-------------------------
 
 export interface CommandData {
     id?: string,
@@ -35,11 +38,17 @@ export interface CommandData {
     callback: CommandCallback
 }
 
+/**
+ * @param {string} id (optional) later automaticly set
+ * @param {string} icon
+ * @param {number} color
+ * @param {string} detailedDescription
+ * @param {CommandMeta} meta
+ * @param {CallableFunction} callback
+ */
 export class Command {
     constructor (public data: CommandData) {}
 }
-
-// --------------------Command Category----------------------
 
 export interface CommandCategoryData {
     name: LocaleText,
@@ -49,6 +58,12 @@ export interface CommandCategoryData {
     emoji?: string
 }
 
+/**
+ * @param {LocaleText} name
+ * @param {Array} commands
+ * @param {LocaleText} description (optional)
+ * @param {string} emoji (optional)
+ */
 export class CommandCategory {
     constructor (public data: CommandCategoryData) {}
 }

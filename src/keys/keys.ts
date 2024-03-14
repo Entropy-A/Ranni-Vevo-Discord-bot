@@ -6,7 +6,6 @@ export const Keys = {
     testGuild: getEnvVar("TEST_GUILD"),
     characterToken: getEnvVar("CHARACTERAI_TOKEN"),
     characterId: getEnvVar("CHARACTERAI_ID"),
-
 } as const;
 
 export default Keys;

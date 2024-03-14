@@ -3,11 +3,13 @@ import type MyClient from "./client.js";
 
 
 export { Events } from "discord.js";
-
 export type EventLog = (...args: unknown[] ) => void;
-
 export type EventKeys = keyof ClientEvents;
 
+/**
+ * @param {MyClient} client
+ * @param {EventLog} log
+ */
 export interface EventProps {
     client: MyClient,
     log: EventLog,
@@ -19,7 +21,11 @@ export type EventCallback<T extends EventKeys> = (
     ...args: ClientEvents[T]
 ) => Awaitable<unknown>;
 
-// Creates an event class for the representing event
+/**
+ * @param {EventKeys} eventKey
+ * @param {EventCallback} callback
+ * @param {Boolean} once (optional) default: false
+ */
 export class Event<T extends EventKeys = EventKeys> {
     data: {
         key: T
@@ -31,7 +37,7 @@ export class Event<T extends EventKeys = EventKeys> {
         this.data = {
             key: data.key,
             callback: data.callback,
-            once: data.once !== undefined ? data.once : false,
+            once: data.once ?? false,
         };
     }
 }

@@ -1,7 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js"
-import { EmbedGenerator } from "../../utils/embedGenerator.js"
+import { EmbedGenerator } from "../../utils/generators/embedGenerator.js"
 import { Page } from "../../types/pages.js"
 import { Text, text } from "../index.js"
+import { Images } from "../../utils/constants.js"
 
 export const defaultMessages = {
     // Future Send Ticket for Error to Website / Report Error
@@ -13,7 +14,7 @@ export const defaultMessages = {
                     iconURL: "https://thumbs.dreamstime.com/z/blue-icon-symbol-sad-face-4651546.jpg",
                     url: undefined
                 },
-                image: {url: "https://support.content.office.net/de-de/media/4c10ecfd-3008-4b00-9f98-d41b6f899c2d.png"}
+                image: {url: Images.error.bluescreen}
             })
         ]})
     

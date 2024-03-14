@@ -1,4 +1,4 @@
-import { Client, Collection, GatewayIntentBits, Partials } from "discord.js";
+import { Client, Collection } from "discord.js";
 import MyClient from "../types/index.js";
 import Keys from "../keys/keys.js";
 import { registerCommands, registerEvents } from "../handlers/index.js";

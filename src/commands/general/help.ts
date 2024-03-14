@@ -6,6 +6,7 @@ import { defaultMessages } from "../../text/pages/default.js";
 import { text } from "../../text/index.js";
 import { RanniColors } from "../../utils/constants.js";
 import { createCommandHelpPages, createHelpMenuPage } from "../../text/pages/help.js";
+import { ButtonGenerator } from "../../utils/index.js";
 
 
 const meta = new SlashCommandBuilder()
@@ -87,31 +88,25 @@ export default new Command({
                     buttonBuilder: backButtunBuilder
                 })
 
-            // Back to menu
-            const menuButtunBuilder = new ButtonBuilder()
-                .setStyle(ButtonStyle.Secondary)
-                .setLabel("Menu")
-                //.setEmoji(":arrow_forward:") ///////////////////////////// CHANGE LATER
-            
-                const menuButton = new PageButton({
-                    id: "menu",
-                    buttonBuilder: menuButtunBuilder
-                })
-                .setVisibilityCallback(() => {
-                    if (!help.data.currentPage || help.data.currentPage[0].data.id === "menu") return false
-                    else return true
-                })
-                .setCallback(() => {
-                    help.updateTo("menu")
-                })
+            // Menu
+            const menuButton = new PageButton({
+                id: "menu",
+                buttonBuilder: ButtonGenerator.Menu()
+            })
+            .setVisibilityCallback(() => {
+                if (!help.data.currentPage || help.data.currentPage[0].data.id === "menu") return false
+                else return true
+            })
+            .setCallback(() => {
+                help.updateTo(menu)
+            })
 
             // -----------------------------------------------------------------Page Menu--------------------------------------------------------------
-
             const help = new PageMenu({})
                 .addPages([menu], "menu")
                 .addDynamicEmbedUpdate(({page}) => {
+                    
                     // Create footerField
-
                     if (page.data.id === "menu") return (page.data.embeds as EmbedBuilder[])
                     let index = help.getPageByMember(page)?.[2]
                     if (index === undefined) return (page.data.embeds as EmbedBuilder[])
@@ -124,12 +119,11 @@ export default new Command({
 
                     const name = "\u200B"
                     const value = text.commands.help.commandFooter.insertInMessage([
-                        (text.commands.categorys as any)[category[1]].name ?? category[1], 
+                        (text.commands.categorys as any)[category[1]].name.get(interaction.locale) ?? category[1], 
                         categoryLink, 
                         index.toString(), 
                         category[0].length.toString()],
                     interaction.locale)
-                    //Text.insertInMessage([(Text.get((text.commands.categorys as any)[category[1]].name, interaction.locale) ?? category[1]), categoryLink, index.toString(), category[0].length.toString()], Text.get(text.commands.help.commandFooter, interaction.locale))
                     
                     // That the fields don't get added multiple times if called repeatetly
                     const fields = page.data.embeds?.[0].data.fields

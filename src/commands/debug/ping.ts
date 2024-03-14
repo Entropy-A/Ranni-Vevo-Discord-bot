@@ -5,7 +5,7 @@ import { Text, text} from "../../text/index.js";
 import { Page } from "../../types/pages.js";
 import { defaultMessages } from "../../text/pages/default.js";
 import { RanniColors } from "../../utils/constants.js";
-import { EmbedGenerator } from "../../utils/embedGenerator.js";
+import { EmbedGenerator } from "../../utils/generators/embedGenerator.js";
 import createPingPage from "../../text/pages/ping.js";
 
 

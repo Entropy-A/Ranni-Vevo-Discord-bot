@@ -1,5 +1,5 @@
 import { RanniColors } from "../../utils/constants.js";
-import { EmbedGenerator } from "../../utils/embedGenerator.js";
+import { EmbedGenerator } from "../../utils/generators/embedGenerator.js";
 import { Page } from "../../types/pages.js";
 import { LocaleString } from "discord.js";
 import { text } from "../index.js";
