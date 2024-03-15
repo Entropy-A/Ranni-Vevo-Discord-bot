@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from "discord.js"
 import { EmbedGenerator } from "../../utils/generators/embedGenerator.js"
 import { Page } from "../../types/pages.js"
-import { Text, text } from "../index.js"
+import { text } from "../index.js"
 import { Images } from "../../utils/constants.js"
 
 export const defaultMessages = {

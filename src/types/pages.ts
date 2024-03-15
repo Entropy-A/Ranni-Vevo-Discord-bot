@@ -14,7 +14,7 @@ import { useClient } from "../hooks/useClient.js";
 //      [Page Error] [ID]
 //      [PageMenu Error]
 
-// ---------------------------------PAGE---------------------------------
+// ----------------------------------------------------------PAGE--------------------------------------------------------
 export type SelectMenuBuilders = StringSelectMenuBuilder | RoleSelectMenuBuilder | UserSelectMenuBuilder | ChannelSelectMenuBuilder 
 export type ComponentInteraction = ButtonInteraction | StringSelectMenuInteraction | RoleSelectMenuInteraction | UserSelectMenuInteraction | ChannelSelectMenuInteraction
 export type PageInteractions = ChatInputCommandInteraction | ComponentInteraction
@@ -143,20 +143,31 @@ export class PageSelectMenu {
 }
 
 export interface PageData {
-    client?: MyClient
-    interaction?: PageInteractions
+    interaction?: PageInteractions,
 
-    id?: string
-    embeds?: Omit<EmbedBuilder, "setColor">[]
+    id?: string,
+    color?: RanniColorType,
+    embeds?: Omit<EmbedBuilder, "setColor">[],
 
-    buttons?: PageButton[] 
-    selectMenus?: PageSelectMenu[] 
+    buttons?: PageButton[] ,
+    selectMenus?: PageSelectMenu[],
 }
 
 export class Page {  
+    private activeComponents: (PageButton|PageSelectMenu)[] = []
 
     constructor(public data: PageData = {}) {
-        this.data.client = useClient()
+        this.applyColor()
+    }
+
+    private applyColor(): this {
+        if(!this.data.color) return this
+        if (this.data.embeds) {
+            this.data.embeds.forEach( embed => {
+                embed.data.color = this.data.color
+            })
+        } 
+        return this
     }
 
     setId(id: string): this {
@@ -164,48 +175,50 @@ export class Page {
         return this
     }
 
-    setColor(color: RanniColorType): this {
-        if (this.data.embeds) {
-
-            this.data.embeds.forEach( embed => {
-                embed.data.color = color
-            })
-            return this
-        } 
-        throw Error(`[Page Error] [${this.data.id}] The pageEmbed must be defined before applying the color.`)
-    }
-
-    setEmbeds(embeds: Omit<EmbedBuilder, "setColor">[], color?: RanniColorType): this {
-        this.data.embeds = embeds
-        if (color) this.setColor(color)
+    /**
+     * Pushes new embeds to class. If color was defined in constructor applys it.
+     * @param embeds 
+     */
+    addEmbeds(embeds: Omit<EmbedBuilder, "setColor">[]): this {
+        if (!this.data.embeds) this.data.embeds = embeds
+        else this.data.embeds.push(...embeds)
+        this.applyColor()
         return this
     }
 
-    addButton(button: PageButton): this {
-        if (!this.data.buttons) this.data.buttons = [button]
-        else this.data.buttons.push(button)
+    /**
+     * Pushes new buttons to class.
+     * @param buttons 
+     */
+    addButton(buttons: PageButton[]): this {
+        if (!this.data.buttons) this.data.buttons = buttons
+        else this.data.buttons.push(...buttons)
         return this
     }
 
-    addSelectMenu(selectMenu: PageSelectMenu): this {
-        if (!this.data.selectMenus) this.data.selectMenus = [selectMenu]
-        else this.data.selectMenus.push(selectMenu)
+    /**
+     * Pushes new selectMenus to class.
+     * @param selectMenus 
+     */
+    addSelectMenu(selectMenus: PageSelectMenu[]): this {
+        if (!this.data.selectMenus) this.data.selectMenus = selectMenus
+        else this.data.selectMenus.push(...selectMenus)
         return this
     }
 
     private catchErrors(...args: unknown[]) {
         if (!this.data.embeds) throw new Error(`[Page Error] [${this.data.id}] PageEmbed was not defined.`)
         this.data.embeds.forEach( embed => {
-            if (MyUtils.objectEmpty(embed.data)) throw new Error(`[Page Error] [${this.data.id}] PageEmbed was not defined.`)
+            if (MyUtils.objectEmpty(embed.data)) throw new Error(`[Page Error] [${this.data.id}] Some pageEmbed contains nothing. Please make sure to define it properly.`)
         })
         if (!this.data.id) throw new Error(`[Page Error] [${this.data.id}] PageId was not defined.`)
     }
 
     private addComponents(): ActionRowBuilder<ButtonBuilder | SelectMenuBuilders>[] | undefined {
-        const client = this.data.client
+        const client = useClient()
         const interaction = this.data.interaction
 
-        if(!client || !interaction) throw new Error(`[Page Error] [${this.data.id}] Could not add Components since [interaction] or [client] were not defined.`)
+        if(!interaction) throw new Error(`[Page Error] [${this.data.id}] Could not add Components since [interaction] was not defined.`)
 
 
         let buttons = new ActionRowBuilder<ButtonBuilder>()
@@ -214,6 +227,7 @@ export class Page {
             for (const button of this.data.buttons) {
                 if(!button.data.VisibilityCallback) throw new Error(`[Page Error] [${this.data.id}] Button with [ID:${button.data.id}] has no VisibilityCallback.`)
                 if (button.data.VisibilityCallback({ interaction, client})) {
+                    this.activeComponents.push(button)
                     buttons.addComponents((button.data.buttonBuilder as ButtonBuilder))
                 }
             }
@@ -225,6 +239,7 @@ export class Page {
             for (const selectMenu of this.data.selectMenus) {
                 if(!selectMenu.data.VisibilityCallback) throw new Error(`[Page Error] [${this.data.id}] SelectMenu with [ID:${selectMenu.data.id}] has no VisibilityCallback`)
                 if (selectMenu.data.VisibilityCallback({ interaction, client})) {
+                    this.activeComponents.push(selectMenu)
                     selectMenus.addComponents((selectMenu.data.selectMenuBuilder as SelectMenuBuilders))
                 }
             }
@@ -237,13 +252,12 @@ export class Page {
         return [selectMenus, buttons]
     }
 
-    private async send(interaction: ChatInputCommandInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
+    private async send(interaction: ChatInputCommandInteraction | ComponentInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
 
         this.data.interaction = interaction
-
         this.catchErrors()
 
-        const client = this.data.client!
+        const client = useClient()
         const userId = this.data.interaction.user.id
         const embeds = this.data.embeds ?? undefined
         const components = this.addComponents()
@@ -276,26 +290,30 @@ export class Page {
         })
 
         buttonCollector.on("collect", ( interaction ) => {
-            if (!this.data.buttons) return
 
             this.data.interaction = interaction
-            for (const button of this.data.buttons) {
+            for (const button of this.activeComponents) {
+                // Check for type
+                if(!(button instanceof PageButton)) break
+
                 if (!button.data.callback) throw new Error(`[Page Error] [${this.data.id}] Button with [ID:${button.data.id}] has no callback.`)
                 if (interaction.customId === button.data.id) button.data.callback({ interaction, client })
             }
         })
 
         stringSelectMenuCollector.on("collect", ( interaction ) => {
-            if (!this.data.selectMenus) return
 
             this.data.interaction = interaction
-            for (const selectMenu of this.data.selectMenus) {
-                if (!selectMenu.data.callback) throw new Error(`[Page Error] [${this.data.id}] SelectMenu with [ID:${selectMenu.data.id}] has no callback.`)
-                if (interaction.customId === selectMenu.data.id) selectMenu.data.callback({ interaction, client })
+            for (const selectMenu of this.activeComponents) {
+                // Check for type
+                if(selectMenu instanceof PageSelectMenu) {
+                    if (!selectMenu.data.callback) throw new Error(`[Page Error] [${this.data.id}] SelectMenu with [ID:${selectMenu.data.id}] has no callback.`)
+                    if (interaction.customId === selectMenu.data.id) selectMenu.data.callback({ interaction, client })
+                }
             }
         })
 
-        // Delete after time. Resets by activity.
+        // Delete after time. Reseted by activity.
         const deleteCollector = page.createMessageComponentCollector({
             filter,
             time: timeout
@@ -314,66 +332,55 @@ export class Page {
         return this
     }
 
-    reply(interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+    /**
+     * Replys with page to interaction.
+     * @param interaction 
+     * @param timeout Timer for how long the message should be visible.
+     * @param ephemeral 
+     */
+    reply(interaction: ChatInputCommandInteraction | ComponentInteraction, timeout?: number, ephemeral?: boolean) {
         return this.send(interaction, "reply", timeout, ephemeral)
     }
 
-    followUp(interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+    /**
+     * Follows up with page to interaction.
+     * @param interaction 
+     * @param timeout Timer for how long the message should be visible.
+     * @param ephemeral 
+     */
+    followUp(interaction: ChatInputCommandInteraction | ComponentInteraction, timeout?: number, ephemeral?: boolean) {
         return this.send(interaction, "followUp", timeout, ephemeral)
     }
 
-    async update(newPage?: InteractionUpdateOptions) {
+    /**
+     * If you want to override the current page with new information (You only override the new message not the class itself).
+     * @param newPage (optional) Overrides current page with new message. (Results in loss of control over buttons.)
+     * @returns Clone of page with new data.
+     */
+    async update(newPage?: Page): Promise<Page> {
 
-        if (!this.data.interaction || this.data.interaction.isChatInputCommand() ) throw new Error(`[Page Error] [${this.data.id}] Cant update page on ChatInputCommandInteractions.`)
+        let anchor = this.clone()
+        if (newPage) {
+            newPage.data.interaction = this.data.interaction
+            anchor = newPage.clone()
+        }
+        if (!this.data.interaction || this.data.interaction.isChatInputCommand() ) throw new Error(`[Page Error] [${anchor.data.id}] Can't update page on ChatInputCommandInteractions or non existen interactions.`)       
 
-        const embeds = this.data.embeds ?? undefined
-        let components = undefined
+        const embeds = anchor.data.embeds
+        const components = anchor.addComponents() 
 
-        // here if you want instant update
-        components = this.addComponents()
+        this.activeComponents = []
+        if (anchor.data.buttons) this.activeComponents.push(...anchor.data.buttons)
+        if (anchor.data.selectMenus) this.activeComponents.push(...anchor.data.selectMenus)
 
-        let updatedMessage
-        if (newPage) updatedMessage = await this.data.interaction.update(newPage)
-        else updatedMessage = await this.data.interaction.update({embeds, components})
+        const updatedMessage = await this.data.interaction.update({embeds, components})
 
-        // Old try to only uodate if the components change as a whole, but it seems useless.
-        /* else if (components && components.length === this.data.interaction.message.components.length) {
-            for (let a = 0; a < components.length; a++) {
-                if (components[a].components.length === this.data.interaction.message.components[a].components.length) {
-                    for (let b = 0; b < components.length; b++) {
-                        if ((components[a].components[b].data as any)["custom_id"] !== this.data.interaction.message.components[a].components[b].customId){
-                            return updatedMessage = await this.data.interaction.update({embeds, components})
-                        } 
-                    }
-                }
-            }
-            updatedMessage = await this.data.interaction.update({embeds})
-        } */
-
-        //here if you want to be able to check in visibility for the new message content
-        //components = this.addComponents()
-        //updatedMessage.edit({ components })
-
-        return this
+        return anchor
     }
 
-    async updateToNewPage(newPage: Page) {
-
-        // Overrides the data on Page with the specified
-        if (!this.data.interaction || this.data.interaction.isChatInputCommand() ) throw new Error(`[Page Error] [${this.data.id}] Cant update page when interaction was not defined or on ChatInputCommandInteractions.`)
-
-        const interaction = this.data.interaction
-        const client = this.data.client
-
-        this.data = newPage.data
-        this.data.client = client
-        this.data.interaction = interaction
-
-        // Default updates Page to apply newly set data
-        this.update()
-        return this
-    } 
-
+    /**
+     * Creates independant clone of the page.
+     */
     clone(): Page {
 
         // Creates a perfect Copy of the Page independant from the parent
@@ -398,9 +405,9 @@ export class Page {
 
         const cloneData: PageData = {
             interaction: this.data.interaction,
-            client: this.data.client,
 
             id: this.data.id,
+            color: this.data.color,
             embeds,
 
             buttons,
@@ -411,8 +418,9 @@ export class Page {
     }
 }
 
-// -------------------------------PAGE MENU-------------------------------
 
+
+// ---------------------------------------------------------------------PAGE MENU--------------------------------------------------------------------
 export type CategoryPages = Record<string, Page[]>
 
 // To edit Embeds dynamicly
@@ -427,6 +435,12 @@ export type PageTripplet = [
     number
 ]
 
+export type CategoryTripplet = [
+    Page[], 
+    string, 
+    number
+]
+
 // PageMenuData
 export interface PageMenuData {
     categoryPages?: CategoryPages
@@ -435,9 +449,15 @@ export interface PageMenuData {
 }
 
 export class PageMenu {
+    private anchor?: Page
 
     constructor(public data: PageMenuData) {}
 
+    /**
+     * Adds pages to category (auto creates new categorys).
+     * @param pages 
+     * @param category 
+     */
     addPages(pages: Page[], category: string): this {
 
         if(!this.data.categoryPages) this.data.categoryPages = {}
@@ -451,12 +471,14 @@ export class PageMenu {
         return this
     }
 
+    /**
+     * Add a whole set of category with pages to the page menu.
+     * @param categorys
+     */
     addCategorys(categorys: CategoryPages): this {
 
         let categoryPages = this.data.categoryPages
         if(!categoryPages) categoryPages = {}
-
-
 
         for (const [id, _p] of Object.entries(categorys)) {
             categoryPages[id] = categorys[id]          
@@ -466,46 +488,54 @@ export class PageMenu {
         return this
     }
 
+    /**
+     * Adds buttons to every page (either specified category or every category).
+     * @param buttons 
+     */
     addButtons(buttons: PageButton[], category?: string, ): this {
 
         if(!this.data.categoryPages) return this
 
         // Sets category on an Array that either contains the specified category or every category
-        const categorys = category ? [(this.getCategoryById(category) ?? [])[0]] : Object.values(this.data.categoryPages)
-
-        if (buttons.length === 0) throw new Error("[PageMenu Error] No Buttons provided to add to pageMenu.")
+        const categorys = category ? [(this.getCategory(category) ?? [])[0]] : Object.values(this.data.categoryPages)
 
         for (const category of categorys){
             if (!category) throw new Error("[PageMenu Error] Category doesnt exist on pageMenu.")
             for (const page of category) {
                 for (const button of buttons) {
-                    page.addButton(button)
+                    page.addButton([button])
                 }
             }   
         }  
         return this 
     }
 
+    /**
+     * Adds selectMenus to every page (either specified category or every category).
+     * @param buttons 
+     */
     addSelectMenus(selectMenus: PageSelectMenu[], category?: string, ): this {
 
         if(!this.data.categoryPages) return this 
 
         // Sets category on an Array that either contains the specified category or every category
-        const categorys = category ? [(this.getCategoryById(category) ?? [])[0]] : Object.values(this.data.categoryPages)
-
-        if (selectMenus.length === 0) throw new Error("[PageMenu Error] No Buttons provided to add to pageMenu.")
+        const categorys = category ? [(this.getCategory(category) ?? [])[0]] : Object.values(this.data.categoryPages)
 
         for (const category of categorys){
             if (!category) throw new Error("[PageMenu Error] Category doesnt Exist on pageMenu.")
             for (const page of category) {
                 for (const selectMenu of selectMenus) {
-                    page.addSelectMenu(selectMenu)
+                    page.addSelectMenu([selectMenu])
                 }
             }   
         }   
         return this 
     }
 
+    /**
+     * Adds a callback to the callbackArray that will be checked before sending the message to dynamicly adapt embeds (will only edit a clone).
+     * @param callback 
+     */
     addDynamicEmbedUpdate(callback: EditEmbedCallback): this {
         let dynamicEmbedUpdates = this.data.dynamicEmbedUpdates
         
@@ -526,7 +556,7 @@ export class PageMenu {
       
         let embeds: EmbedBuilder[] = updatedPage.data.embeds as EmbedBuilder[]
         for (const callback of dynamicEmbedUpdates) {
-            embeds= callback({page})
+            embeds = callback({page})
         }
 
         updatedPage.data.embeds = embeds
@@ -534,21 +564,11 @@ export class PageMenu {
         return updatedPage
     }
 
-    // Returns a triplett [Page class, category, index in category]
-    getPageById(pageId: string): PageTripplet | undefined {
-
-        if(!this.data.categoryPages) return
-
-        const categoryPages = Object.entries(this.data.categoryPages)
-
-        for (const [category, pages] of categoryPages) {
-            for (const [i, page] of pages.entries()) {
-                if (page.data.id === pageId) return [page, category, i]
-            }
-        }
-    }
-
-    getPageByMember(page: Page): PageTripplet | undefined {
+    /**
+     * Returns a triplett [Page, category, index in category]
+     * @param page 
+     */
+    getPage(page: string | Page): PageTripplet | undefined {
 
         if(!this.data.categoryPages) return
 
@@ -556,133 +576,109 @@ export class PageMenu {
 
         for (const [category, pages] of categoryPages) {
             for (const [i, page_] of pages.entries()) {
-                if (page_.data.id === page.data.id) return [page_, category, i]
+                if ( (typeof page === "string" && page_.data.id === page) || (page instanceof Page && page_.data.id === page.data.id) ) return [page_, category, i]
             }
         }
     }
 
-    // Return tupel [category, Page array]
-    getCategoryById(categoryId: string): [Page[], string] | undefined {
+    /**
+     * Return tupel [category, Page array].
+     * @param search Page or category name.
+     */
+    getCategory(search: string | Page): CategoryTripplet | undefined {
 
         if(!this.data.categoryPages) return
 
         const categoryPages = Object.entries(this.data.categoryPages)
 
+        let i = 0
         for (const [category, pages] of categoryPages) {
-            if (category === categoryId) return [pages, category]
-        }
-    }
-
-    getCategoryByMember(member: Page): [Page[], string] | undefined {
-
-        if(!this.data.categoryPages) return
-
-        const categoryPages = Object.entries(this.data.categoryPages)
-
-        for (const [category, pages] of categoryPages) {
+            if (typeof search === "string" && category === search) return [pages, category, i]
             for (const page of pages) {
-                if (page.data.id === member.data.id) return [pages, category]
+                if (search instanceof Page && page.data.id === search.data.id) return [pages, category, i]
             }
+            i++
         }
     }
 
     // Sends specified page as "anchor". The anchor is the message, that registers all the component interactions.
-    private async send(page: string | Page, interaction: ChatInputCommandInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
-        let currentPage = this.data.currentPage
-        let originPage: PageTripplet | undefined, newPage: Page
+    private async send(page: string | Page, interaction: ChatInputCommandInteraction | ComponentInteraction, methode: string, timeout?: number, ephemeral?: boolean) {
 
-        if (typeof(page) === "string"){
+        const pageContext = this.getPage(page);
+        if (!pageContext) throw new Error("[PageMenu Error] This page does not exist.");
+        if (typeof page === "string") page = pageContext[0];
 
-            originPage = this.getPageById(page)
-            if(!originPage) throw new Error(`[PageMenu Error] This page does not exist on an instance of a pageMenu.`)
+        const newPage = this.applyDynamicPageUpdates(page)
 
-            // Prototype currentPage for dynamicUpdate functunality (ex. that current page is defined for usage)
-            this.data.currentPage = [originPage[0].clone(), originPage[1], originPage[2]]
+        // Prototype currentPage for dynamicUpdate functunality (ex. that current page is defined for usage) ------If error add .clone()------
+        this.data.currentPage = [page, pageContext[1], pageContext[2]] 
 
-            newPage = this.applyDynamicPageUpdates(originPage[0])
-            
-        } else {
-
-            originPage = this.getPageByMember(page)
-            if(!originPage) throw new Error(`[PageMenu Error] This page does not exist on an instance of a pageMenu.`)
-
-            // Prototype currentPage for dynamicUpdate functunality (ex. that current page is defined for usage)
-            this.data.currentPage = [originPage[0].clone(), originPage[1], originPage[2]]
-
-            newPage = this.applyDynamicPageUpdates(originPage[0])
-        }
-
-        let page_
         switch (methode) { 
             case "followUp": 
-                page_ = await newPage.followUp(interaction, timeout, ephemeral)
+                this.data.currentPage = [await newPage.followUp(interaction, timeout, ephemeral), pageContext[1], pageContext[2]]
                 break;
 
             case "reply":   
-                page_ = await newPage.reply(interaction, timeout, ephemeral) 
+                this.data.currentPage = [await newPage.reply(interaction, timeout, ephemeral), pageContext[1], pageContext[2]]
                 break;
 
-            default : 
-                page_ = await newPage.reply(interaction, timeout, ephemeral) 
+            default: 
+                this.data.currentPage = [await newPage.reply(interaction, timeout, ephemeral), pageContext[1], pageContext[2]]
                 break;
         }
-
-        // Defines current anchor as a clone so that currentPage is independent from the actual Pages displayed and able to update without overriding data.
-        currentPage = [page_, originPage[1], originPage[2]];
-
-        this.data.currentPage = currentPage
+        this.anchor = this.data.currentPage[0]
     }
 
-    reply(page: string | Page, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+    /**
+     * Replys with page to an interaction.
+     * @param page 
+     * @param interaction 
+     * @param timeout How long the page should be visible.
+     * @param ephemeral 
+     */
+    reply(page: string | Page, interaction: ChatInputCommandInteraction | ComponentInteraction, timeout?: number, ephemeral?: boolean) {
         return this.send(page, interaction, "reply", timeout, ephemeral)
     }
 
-    followUp(page: string | Page, interaction: ChatInputCommandInteraction, timeout?: number, ephemeral?: boolean) {
+    /**
+     * Follows up with page to an interaction.
+     * @param page 
+     * @param interaction 
+     * @param timeout How long the page should be visible.
+     * @param ephemeral 
+     */
+    followUp(page: string | Page, interaction: ChatInputCommandInteraction | ComponentInteraction, timeout?: number, ephemeral?: boolean) {
         return this.send(page, interaction, "followUp", timeout, ephemeral)
     }
 
-    // Updates the anchor
+    /**
+     * Updates the menu to a new Page.
+     * @param page 
+     */
     async updateTo(page: string | Page) {
 
         if (!this.data.currentPage) throw new Error("[PageMenu Error] No pagemenu was send to update.")
-        let currentPage = this.data.currentPage
 
-        if (typeof(page) === "string"){
+        const pageContext = this.getPage(page);
+        if (!pageContext) throw new Error("[PageMenu Error] This page does not exist.");
+        if (typeof page === "string") page = pageContext[0];
 
-            const originPage = this.getPageById(page)
-            if(!originPage) throw new Error(`[PageMenu Error] This page does not exist on an instance of a pageMenu.`)
+        const newPage: Page = this.applyDynamicPageUpdates(page)
 
-            // Prototype currentPage for dynamicUpdate functunality (ex. that current page is defined for usage)
-            this.data.currentPage = [originPage[0].clone(), originPage[1], originPage[2]]
+        // Prototype currentPage for dynamicUpdate functunality (ex. that current page is defined for usage) ------If error add .clone()------
+        this.data.currentPage = [page, pageContext[1], pageContext[2]]
 
-            const newPage: Page = this.applyDynamicPageUpdates(originPage[0])
-
-            // calles updateFunction on page
-            currentPage = [await currentPage[0].updateToNewPage(newPage), originPage[1], originPage[2]]
-
-        } else {
-
-            const originPage = this.getPageByMember(page)
-            if(!originPage) throw new Error(`[PageMenu Error] This page does not exist on an instance of a pageMenu.`)
-
-            // Prototype currentPage for dynamicUpdate functunality (ex. that current page is defined for usage)
-            this.data.currentPage = [originPage[0].clone(), originPage[1], originPage[2]]
-
-            const newPage: Page = this.applyDynamicPageUpdates(originPage[0])
-
-            // calles updateFunction on page
-            currentPage = [await currentPage[0].updateToNewPage(newPage), originPage[1], originPage[2]]
-        }
-
-        this.data.currentPage = currentPage
+        // calles updateFunction on page
+        if (!this.anchor) throw new Error("[Page Menu] No anchor.")
+        this.data.currentPage = [await this.anchor.update(newPage), pageContext[1], pageContext[2]]
     }
     
     defaulButtonCallbacks = {
         nextPageInCategory: () => {
             if (!this.data.currentPage) throw new Error("[PageMenu Error] Cant use Button since no pageMenu was send.")
-            const currentCategory = this.getCategoryByMember(this.data.currentPage[0])
+            const currentCategory = this.getCategory(this.data.currentPage[0])
 
-            if(!currentCategory) throw new Error("[] CurrentCategory doesn't exist.")
+            if(!currentCategory) throw new Error("[Page Menu] CurrentCategory doesn't exist.")
             
             let nextIndex = this.data.currentPage[2] + 1
             if (nextIndex >= currentCategory[0].length) nextIndex = 0
@@ -691,18 +687,66 @@ export class PageMenu {
             this.updateTo(nextPage)
         },
 
+        absoluteNext: (skipCategoryIndex?: number) => {
+            if (!this.data.currentPage) throw new Error("[PageMenu Error] Cant use Button since no pageMenu was send.")
+            if (!this.data.categoryPages) return
+
+            const categorys = Object.values(this.data.categoryPages)
+
+            let nextCategoryIndex = this.getCategory(this.data.currentPage[0])![2]
+            let nextPageIndex = this.data.currentPage[2] + 1
+
+            if (nextPageIndex >= this.getCategory(this.data.currentPage[0])![0].length) {
+                nextPageIndex = 0
+
+                nextCategoryIndex++
+
+                if (nextCategoryIndex >= categorys.length) {
+                    nextCategoryIndex = 0
+                }
+                if (nextCategoryIndex === skipCategoryIndex) nextCategoryIndex++
+            }
+
+            const nextPage = categorys[nextCategoryIndex][nextPageIndex]
+            this.updateTo(nextPage)
+        },
+
         backPageInCategory: () => {
             if (!this.data.currentPage) throw new Error("[PageMenu Error] Cant use Button since no pageMenu was send.")
-            const currentCategory = this.getCategoryByMember(this.data.currentPage[0])
+            const currentCategory = this.getCategory(this.data.currentPage[0])
 
-            if(!currentCategory) throw new Error("[] CurrentCategory doesn't exist.")
+            if(!currentCategory) throw new Error("[Page Menu] CurrentCategory doesn't exist.")
             
             let nextIndex = this.data.currentPage[2] - 1
             if (nextIndex < 0) nextIndex = currentCategory[0].length - 1
 
             const nextPage = currentCategory[0][nextIndex]
             this.updateTo(nextPage)
-        }
+        },
+
+        absoluteBack: (skipCategoryIndex?: number) => { /////////////////////////// FUTURE SKIP INDEX
+            if (!this.data.currentPage) throw new Error("[PageMenu Error] Cant use Button since no pageMenu was send.")
+            if (!this.data.categoryPages) return
+
+            const categorys = Object.values(this.data.categoryPages)
+
+            let nextCategoryIndex = this.getCategory(this.data.currentPage[0])![2]
+            let nextPageIndex = this.data.currentPage[2] - 1
+
+            if (nextPageIndex < 0) {
+                nextCategoryIndex--
+                if (nextCategoryIndex === skipCategoryIndex) nextCategoryIndex--
+
+                if (nextCategoryIndex < 0 ) {
+                    nextCategoryIndex = categorys.length - 1
+                }
+
+                nextPageIndex = categorys[nextCategoryIndex].length - 1
+            }
+
+            const nextPage = categorys[nextCategoryIndex][nextPageIndex]
+            this.updateTo(nextPage)
+        },
 
         // Future NextCategory Button to access Pages from Different Categorys
 

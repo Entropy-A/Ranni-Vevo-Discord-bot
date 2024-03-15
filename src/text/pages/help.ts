@@ -61,6 +61,7 @@ export function createHelpMenuPage(data: HelpMenuData): Page {
 
     return new Page({
         id: "menu",
+        color: RanniColors.help,
         embeds: [
             EmbedGenerator.Banner(Images.help.banner),
             menuEmbed

@@ -30,7 +30,7 @@ export default new Command({
             const menu = createHelpMenuPage({locale: interaction.locale, icon})
             const commandPages = createCommandHelpPages({locale: interaction.locale, icon})
 
-            // -------------------StringSelectMenu----------------------
+            // ------------------------------StringSelectMenu-----------------------------------
 
             // Options
             const options: StringSelectMenuOptionBuilder[] = []
@@ -53,52 +53,51 @@ export default new Command({
                 .setMaxValues(1)
                 .setOptions(options)
 
-                const selectMenu = new PageSelectMenu({
-                    id: "selectCommand",
-                    selectMenuBuilder
-                })
-                .setCallback(({interaction}) => {
-                    const newPage = help.getPageById(interaction.values[0])?.[0]
+            const selectMenu = new PageSelectMenu({
+                id: "selectCommand",
+                selectMenuBuilder,
+                callback: ({interaction}) => {
+                    const newPage = help.getPage(interaction.values[0])?.[0]
                     if (!newPage) return // future send error page
                     
                     help.updateTo(newPage)
-                })
+                }
+            })
 
-            // -------------------Buttons---------------------- ///////////////////////////////////////////////////// FUTURE WORK ON /////////////////////
-
-            // Next in category
-            const nextButtunBuilder = new ButtonBuilder()
-                .setStyle(ButtonStyle.Success)
-                .setLabel("Next")
-                //.setEmoji(":arrow_forward:") ///////////////////////////// CHANGE LATER
+            // ---------------------------------------Buttons---------------------------------- //////////////////////////////////////// FUTURE WORK ON /////////////////////
+            const VisibilityCallback = () => {
+                if (!help.data.currentPage || help.data.currentPage[0].data.id === "menu") return false
+                else return true
+            }
             
-                const nextButton = new PageButton({
-                    id: "nextButton",
-                    buttonBuilder: nextButtunBuilder
-                })
-
-            // Back in category
-            const backButtunBuilder = new ButtonBuilder()
-                .setStyle(ButtonStyle.Danger)
-                .setLabel("Back")
-                //.setEmoji(":arrow_forward:") ///////////////////////////// CHANGE LATER
+            // Next
+            const nextButton = new PageButton({
+                id: "nextButton",
+                buttonBuilder: ButtonGenerator.Next(),
+                VisibilityCallback,
+                callback: () => {
+                    help.defaulButtonCallbacks.absoluteNext(0)
+                }
+            })
             
-                const backButton = new PageButton({
-                    id: "backButton",
-                    buttonBuilder: backButtunBuilder
-                })
+            // Back
+            const backButton = new PageButton({
+                id: "backButton",
+                buttonBuilder: ButtonGenerator.Back(),
+                VisibilityCallback,
+                callback: () => {
+                    help.defaulButtonCallbacks.absoluteBack(0)
+                }
+            })
 
             // Menu
             const menuButton = new PageButton({
                 id: "menu",
-                buttonBuilder: ButtonGenerator.Menu()
-            })
-            .setVisibilityCallback(() => {
-                if (!help.data.currentPage || help.data.currentPage[0].data.id === "menu") return false
-                else return true
-            })
-            .setCallback(() => {
-                help.updateTo(menu)
+                buttonBuilder: ButtonGenerator.Menu(),
+                VisibilityCallback,
+                callback: () => {
+                    help.updateTo(menu)
+                }
             })
 
             // -----------------------------------------------------------------Page Menu--------------------------------------------------------------
@@ -108,11 +107,11 @@ export default new Command({
                     
                     // Create footerField
                     if (page.data.id === "menu") return (page.data.embeds as EmbedBuilder[])
-                    let index = help.getPageByMember(page)?.[2]
+                    let index = help.getPage(page)?.[2]
                     if (index === undefined) return (page.data.embeds as EmbedBuilder[])
                     index++
 
-                    const category = help.getCategoryByMember(page) ?? undefined
+                    const category = help.getCategory(page) ?? undefined
                     if (!category) return (page.data.embeds as EmbedBuilder[])
                     const categoryLink = "https://www.youtube.com/watch?v=d43lJsK7Kvo" ////// CHANGE FUTURE WEBSITE DOCUMENTATION
 
@@ -135,11 +134,10 @@ export default new Command({
 
                     return (page.data.embeds as EmbedBuilder[])
                 })
-
-            // Adds all categorys created for each category of a command
-            help.addCategorys(commandPages)
-            help.addSelectMenus([selectMenu])
-            help.addButtons([/* backButton,  */ menuButton /*, nextButton */])
+                .addCategorys(commandPages)
+                .addSelectMenus([selectMenu])
+                .addButtons([backButton, menuButton, nextButton])
+                
             help.reply(menu, interaction, undefined, true)
         
         } catch (error) {
